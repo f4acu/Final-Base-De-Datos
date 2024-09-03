@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,5 +46,22 @@ public class DireccionControlador {
         Direccion updatedDireccion = direccionServicio.updateDireccion(id, direccion);
 
         return ResponseEntity.ok(direccionToDTO(updatedDireccion));
+    }
+
+    @PostMapping
+    public ResponseEntity<DireccionDTO> createDireccion(@RequestBody DireccionDTO direccionDTO){
+        Direccion direccion = dtoToDireccion(direccionDTO);
+        Direccion newDireccion = direccionServicio.createDireccion(direccion);
+
+        return ResponseEntity.ok(direccionToDTO(newDireccion));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDireccion(@PathVariable Long id){
+        if (!direccionServicio.existDireccionById(id)){
+            return ResponseEntity.notFound().build();
+        }
+        direccionServicio.deleteDireccion(id);
+        return ResponseEntity.noContent().build();
     }
 }

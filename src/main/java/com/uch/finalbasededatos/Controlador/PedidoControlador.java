@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,5 +46,22 @@ public class PedidoControlador {
         Pedido updatedPedido = pedidoServicio.updatePedido(id, pedido);
 
         return ResponseEntity.ok(pedidoToDTO(updatedPedido));
+    }
+
+    @PostMapping
+    public ResponseEntity<PedidoDTO> createPedido(@RequestBody PedidoDTO pedidoDTO){
+        Pedido pedido = dtoToPedido(pedidoDTO);
+        Pedido newPedido = pedidoServicio.createPedido(pedido);
+
+        return ResponseEntity.ok(pedidoToDTO(newPedido));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<PedidoDTO> deletePedido(@PathVariable Long id){
+        if (!pedidoServicio.existPedidoById(id)){
+            return ResponseEntity.notFound().build();
+        }
+        pedidoServicio.deletePedido(id);
+        return ResponseEntity.noContent().build();
     }
 }

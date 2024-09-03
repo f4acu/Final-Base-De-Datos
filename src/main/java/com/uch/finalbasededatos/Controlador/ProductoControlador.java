@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,5 +46,22 @@ public class ProductoControlador {
         Producto updatedProducto = productoServicio.updateProducto(id, producto);
 
         return ResponseEntity.ok(productoToDTO(updatedProducto));
+    }
+
+    @PostMapping
+    public ResponseEntity<ProductoDTO> createProducto(@RequestBody ProductoDTO productoDTO) {
+        Producto producto = dtoToProducto(productoDTO);
+        Producto newProducto = productoServicio.createProducto(producto);
+
+        return ResponseEntity.ok(productoToDTO(newProducto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ProductoDTO> deleteProducto(@PathVariable Long id) {
+        if (!productoServicio.existsProducto(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        productoServicio.deleteProducto(id);
+        return ResponseEntity.noContent().build();
     }
 }

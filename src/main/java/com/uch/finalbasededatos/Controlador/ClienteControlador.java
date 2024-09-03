@@ -5,7 +5,6 @@ import com.uch.finalbasededatos.Modelo.DTOS.ClienteDTO;
 import com.uch.finalbasededatos.Modelo.Entidades.Cliente;
 import com.uch.finalbasededatos.Modelo.Servicios.ClienteServicio;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +33,7 @@ public class ClienteControlador {
     public ResponseEntity<ClienteDTO> getClienteById(@PathVariable Long id) {
         Optional<Cliente> clienteOptional = clienteServicio.getClienteById(id);
         if (!clienteOptional.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
 
         ClienteDTO clienteDTO = clienteToDTO(clienteOptional.get());
@@ -47,5 +46,22 @@ public class ClienteControlador {
         Cliente updatedCliente = clienteServicio.updateCliente(id, cliente);
 
         return ResponseEntity.ok(clienteToDTO(updatedCliente));
+    }
+
+    @PostMapping
+    public ResponseEntity<ClienteDTO> createCliente(@RequestBody ClienteDTO clienteDTO) {
+        Cliente cliente = dtoToCliente(clienteDTO);
+        Cliente newCliente = clienteServicio.createCliente(cliente);
+
+        return ResponseEntity.ok(clienteToDTO(newCliente));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCliente(@PathVariable Long id){
+        if (!clienteServicio.existClienteById(id)){
+            return ResponseEntity.notFound().build();
+        }
+        clienteServicio.deleteCliente(id);
+        return ResponseEntity.noContent().build();
     }
 }
