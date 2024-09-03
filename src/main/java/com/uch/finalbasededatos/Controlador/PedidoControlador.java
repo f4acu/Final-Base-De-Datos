@@ -1,7 +1,9 @@
 package com.uch.finalbasededatos.Controlador;
 
-import com.uch.finalbasededatos.Modelo.Pedido;
-import com.uch.finalbasededatos.Repositorio.PedidoRepositorio;
+import com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor;
+import com.uch.finalbasededatos.Modelo.DTOS.PedidoDTO;
+import com.uch.finalbasededatos.Modelo.Entidades.Pedido;
+import com.uch.finalbasededatos.Modelo.Servicios.PedidoServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,52 +11,42 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor.dtoToPedido;
+import static com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor.pedidoToDTO;
 
 @RestController
-@RequestMapping("/api/pedidos")
+@RequestMapping("/pedidos")
 public class PedidoControlador {
 
     @Autowired
-    private PedidoRepositorio pedidoRepositorio;
+    private PedidoServicio pedidoServicio;
 
     @GetMapping
-    public List<Pedido> getAllPedidos() {
-        return pedidoRepositorio.findAll();
-    }
-
-    @PostMapping
-    public Pedido createPedido(@RequestBody Pedido pedido) {
-        return pedidoRepositorio.save(pedido);
+    public List<PedidoDTO> getAllPedidos(){
+        return pedidoServicio.getAllPedidos().stream()
+                .map(EntityAndDTOConvertor::pedidoToDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> getPedidoById(@PathVariable Long id) {
-        Pedido pedido = pedidoRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id" + id));
-        return ResponseEntity.ok(pedido);
+    public ResponseEntity<PedidoDTO> getPedidoById(@PathVariable Long id){
+        Optional<Pedido> pedidoOptional = pedidoServicio.getPedidoById(id);
+        if(pedidoOptional.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+
+        PedidoDTO pedidoDTO = new PedidoDTO();
+        return ResponseEntity.ok(pedidoDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> updatePedido(@PathVariable Long id, @RequestBody Pedido pedidoDetalles) {
-        Pedido pedido = pedidoRepositorio.findById(id)
-                .orElseThrow(()-> new RuntimeException("Pedido no encontrado con id" + id));
+    public ResponseEntity<PedidoDTO> updatePedido(@PathVariable Long id, @RequestBody PedidoDTO pedidoDTO){
+        Pedido pedido = dtoToPedido(pedidoDTO);
+        Pedido updatedPedido = pedidoServicio.updatePedido(id, pedido);
 
-        pedido.setFecha(pedidoDetalles.getFecha());
-        pedido.setCliente(pedidoDetalles.getCliente());
-        pedido.setProductos(pedidoDetalles.getProductos());
-
-        Pedido updatedPedido = pedidoRepositorio.save(pedido);
-        return ResponseEntity.ok(updatedPedido);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deletePedido(@PathVariable Long id) {
-        Pedido pedido = pedidoRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id" + id));
-
-        pedidoRepositorio.delete(pedido);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(pedidoToDTO(updatedPedido));
     }
 }

@@ -1,6 +1,6 @@
 package com.uch.finalbasededatos.Repositorio;
 
-import com.uch.finalbasededatos.Modelo.Direccion;
+import com.uch.finalbasededatos.Modelo.Entidades.Direccion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,24 +1,27 @@
-package com.uch.finalbasededatos.Modelo;
+package com.uch.finalbasededatos.Modelo.Entidades;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.Set;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
-@Table(name = "pedidos")
+@Table(name = "pedido")
 public class Pedido {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
+    @JsonIgnore
     private Cliente cliente;
 
     @ManyToMany
@@ -32,4 +35,20 @@ public class Pedido {
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date fecha;
+
+    public Pedido(Cliente cliente, Set<Producto> productos, Date fecha) {
+        this.cliente = cliente;
+        this.productos = productos;
+        this.fecha = fecha;
+    }
+
+    @Override
+    public String toString() {
+        return "Pedido{" +
+                "id=" + id +
+                ", cliente=" + cliente + '\'' +
+                ", productos=" + productos + '\'' +
+                ", fecha=" + fecha + '\'' +
+                "}";
+    }
 }

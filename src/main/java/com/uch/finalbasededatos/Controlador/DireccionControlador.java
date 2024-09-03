@@ -1,7 +1,9 @@
 package com.uch.finalbasededatos.Controlador;
 
-import com.uch.finalbasededatos.Modelo.Direccion;
-import com.uch.finalbasededatos.Repositorio.DireccionRepositorio;
+import com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor;
+import com.uch.finalbasededatos.Modelo.DTOS.DireccionDTO;
+import com.uch.finalbasededatos.Modelo.Entidades.Direccion;
+import com.uch.finalbasededatos.Modelo.Servicios.DireccionServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,53 +11,42 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor.direccionToDTO;
+import static com.uch.finalbasededatos.Conversor.EntityAndDTOConvertor.dtoToDireccion;
 
 @RestController
-@RequestMapping("/api/direcciones")
+@RequestMapping("/direcciones")
 public class DireccionControlador {
 
     @Autowired
-    private DireccionRepositorio direccionRepositorio;
+    private DireccionServicio direccionServicio;
 
     @GetMapping
-    public List<Direccion> getAllDirecciones(){
-        return direccionRepositorio.findAll();
-    }
-
-    @PostMapping
-    public Direccion createDireccion(@RequestBody Direccion direccion){
-        return direccionRepositorio.save(direccion);
+    public List<DireccionDTO> getAllDirecciones(){
+        return direccionServicio.getAllDirecciones().stream()
+                .map(EntityAndDTOConvertor::direccionToDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Direccion> getDireccionByID(@PathVariable Long id){
-        Direccion direccion = direccionRepositorio.findById(id)
-                .orElseThrow(()-> new RuntimeException("Direccion no encontrada con id" + id));
-        return ResponseEntity.ok(direccion);
+    public ResponseEntity<DireccionDTO> getDireccionById(@PathVariable Long id){
+        Optional<Direccion> direccionOptional = direccionServicio.getDireccionById(id);
+        if(!direccionOptional.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+
+        DireccionDTO direccionDTO = direccionToDTO(direccionOptional.get());
+        return ResponseEntity.ok(direccionDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Direccion> updateDireccion(@PathVariable Long id, @RequestBody Direccion direccionDetalles){
-        Direccion direccion = direccionRepositorio.findById(id)
-                .orElseThrow(()-> new RuntimeException("Direccion no encontrada con id" + id));
+    public ResponseEntity<DireccionDTO> updateDireccion(@PathVariable Long id, @RequestBody DireccionDTO direccionDTO){
+        Direccion direccion = dtoToDireccion(direccionDTO);
+        Direccion updatedDireccion = direccionServicio.updateDireccion(id, direccion);
 
-        direccion.setCalle(direccionDetalles.getCalle());
-        direccion.setProvincia(direccionDetalles.getProvincia());
-        direccion.setLocalidad(direccionDetalles.getLocalidad());
-        direccion.setCodigoPostal(direccionDetalles.getCodigoPostal());
-
-        Direccion updatedDireccion = direccionRepositorio.save(direccion);
-        return ResponseEntity.ok(updatedDireccion);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteDireccion(@PathVariable Long id){
-        Direccion direccion = direccionRepositorio.findById(id)
-                .orElseThrow(()-> new RuntimeException("Direccion no encontrada con id" + id));
-
-        direccionRepositorio.delete(direccion);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(direccionToDTO(updatedDireccion));
     }
 }
